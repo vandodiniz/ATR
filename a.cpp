@@ -4,10 +4,16 @@
 #include <windows.h>
 #include <stdio.h>
 #include <process.h>
+#include <vector>
+#include <semaphore.h>
 
 using namespace std;
 
 #define NTHREADS 2
+
+vector<string> MEMORIA;
+//sem_t semaforo_memoria;
+int vagas_memoria = 5;
 
 void incrementa_contador(int *contador){
     *contador+=1;
@@ -108,6 +114,15 @@ string gera_mensagem_scada_alarmes(int* contador){
     return NSEQ + "|" + TIPO + "|" + ID + "|" + PRIORIDADE + "|" + TIMESTAMP;
 }
 
+void envia_memoria(string mensagem){
+    //int status = sem_wait(&semaforo_memoria);
+    do{
+
+    }while(vagas_memoria==0);
+    MEMORIA.push_back(mensagem);
+    vagas_memoria--;
+    cout << MEMORIA.size() << endl;
+} 
 
 unsigned __stdcall comunicacaoDeDados(void *arg){
     int NSEQ_otimizacao=0;
@@ -120,17 +135,15 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
         //
         Sleep((rand()%5+1)*1000);
         mensagem_otimizacao = gera_mensagem_scada_processo(&NSEQ_otimizacao);
-        cout << mensagem_otimizacao << endl;
+        envia_memoria(mensagem_otimizacao);
         //
         Sleep(500);
         mensagem_scada_processo = gera_mensagem_scada_processo(&NSEQ_scada_processos);
-        cout << mensagem_scada_processo << endl;
+        envia_memoria(mensagem_scada_processo);
         //
         Sleep((rand()%5+1)*1000);
         mensagem_scada_alarmes = gera_mensagem_scada_alarmes(&NSEQ_scada_alarmes);
-        cout << mensagem_scada_alarmes << endl;
-
-        break;
+        envia_memoria(mensagem_scada_alarmes);
     }
     return 0;
 } 
@@ -139,7 +152,6 @@ unsigned __stdcall teste(void *arg){
     while(1){
         Sleep(3000);
         cout << "oi" << endl;
-        break;
     }
     return 0;
 }
@@ -147,6 +159,8 @@ unsigned __stdcall teste(void *arg){
 int main(){
     HANDLE hThreads[NTHREADS];
     unsigned threadID[2];
+
+    //int status = sem_init(&semaforo_memoria, 0, 100); //sempre retorna 0
 
     //Criaçao de threads
     printf( "Criando threads...\n" );
@@ -162,3 +176,4 @@ int main(){
 
    return 0;
 }
+

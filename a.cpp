@@ -1,15 +1,13 @@
 #include<iostream>
+#include<string>
+#include <time.h>
 #include <windows.h>
 #include <stdio.h>
-#include <errno.h>
-#include <signal.h>
-#include <stdlib.h>
-#define HAVE_STRUCT_TIMESPEC
-#include <pthread.h>
-#include <conio.h>		// _getch
-#include <time.h>
+#include <process.h>
 
 using namespace std;
+
+#define NTHREADS 2
 
 void incrementa_contador(int *contador){
     *contador+=1;
@@ -65,6 +63,7 @@ string gera_tempo(){
     string tempo = asctime(localtime(&result));
     for (int i = 11; i<19; i++)
         TIMESTAMP += tempo[i];
+    return TIMESTAMP;
 }
 
 string gera_mensagem_otimizacao(int* contador){
@@ -109,22 +108,57 @@ string gera_mensagem_scada_alarmes(int* contador){
     return NSEQ + "|" + TIPO + "|" + ID + "|" + PRIORIDADE + "|" + TIMESTAMP;
 }
 
-int main(){
-    int NSEQ_otimizacao=999998;
-    int NSEQ_scada_processos=999998;
-    int NSEQ_scada_alarmes=999998;
-    for (int i=0; i<3; i++){
-        string res1 = gera_mensagem_otimizacao(&NSEQ_otimizacao);
-        cout<<res1<<endl;
-    }
-    for (int i=0; i<3; i++){
-        string res2 = gera_mensagem_scada_processo(&NSEQ_scada_processos);
-        cout<<res2<<endl;
-    }
-    for (int i=0; i<3; i++){
-        string res3 = gera_mensagem_scada_alarmes(&NSEQ_scada_alarmes);
-        cout<<res3<<endl;
-    }
 
-    return 0; 
+unsigned __stdcall comunicacaoDeDados(void *arg){
+    int NSEQ_otimizacao=0;
+    int NSEQ_scada_processos=0;
+    int NSEQ_scada_alarmes=0;
+    string mensagem_otimizacao;
+    string mensagem_scada_processo;
+    string mensagem_scada_alarmes;
+    while(1){
+        //
+        Sleep((rand()%5+1)*1000);
+        mensagem_otimizacao = gera_mensagem_scada_processo(&NSEQ_otimizacao);
+        cout << mensagem_otimizacao << endl;
+        //
+        Sleep(500);
+        mensagem_scada_processo = gera_mensagem_scada_processo(&NSEQ_scada_processos);
+        cout << mensagem_scada_processo << endl;
+        //
+        Sleep((rand()%5+1)*1000);
+        mensagem_scada_alarmes = gera_mensagem_scada_alarmes(&NSEQ_scada_alarmes);
+        cout << mensagem_scada_alarmes << endl;
+
+        break;
+    }
+    return 0;
+} 
+
+unsigned __stdcall teste(void *arg){
+    while(1){
+        Sleep(3000);
+        cout << "oi" << endl;
+        break;
+    }
+    return 0;
+}
+
+int main(){
+    HANDLE hThreads[NTHREADS];
+    unsigned threadID[2];
+
+    //Criaçao de threads
+    printf( "Criando threads...\n" );
+    hThreads[0] = (HANDLE)_beginthreadex( NULL, 0, &comunicacaoDeDados, NULL, 0, &threadID[0] );
+    hThreads[1] = (HANDLE)_beginthreadex( NULL, 0, &teste, NULL, 0, &threadID[1] );
+
+    //Execução das threads
+   WaitForMultipleObjects(NTHREADS, hThreads, TRUE, INFINITE);
+
+    //Encerramento das threads
+   for(int i = 0; i < NTHREADS; i++)
+      CloseHandle(hThreads[i]);
+
+   return 0;
 }

@@ -13,7 +13,8 @@ using namespace std;
 
 vector<string> MEMORIA;
 //sem_t semaforo_memoria;
-int vagas_memoria = 5;
+int vagas_memoria = 100;
+int mutex = 1;
 
 void incrementa_contador(int *contador){
     *contador+=1;
@@ -116,12 +117,10 @@ string gera_mensagem_scada_alarmes(int* contador){
 
 void envia_memoria(string mensagem){
     //int status = sem_wait(&semaforo_memoria);
-    do{
-
-    }while(vagas_memoria==0);
+    do{}while(vagas_memoria==0);
     MEMORIA.push_back(mensagem);
     vagas_memoria--;
-    cout << MEMORIA.size() << endl;
+    cout << "Enviando mensagem do tipo "<< mensagem[7] << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
 } 
 
 unsigned __stdcall comunicacaoDeDados(void *arg){
@@ -134,7 +133,7 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
     while(1){
         //
         Sleep((rand()%5+1)*1000);
-        mensagem_otimizacao = gera_mensagem_scada_processo(&NSEQ_otimizacao);
+        mensagem_otimizacao = gera_mensagem_otimizacao(&NSEQ_otimizacao);
         envia_memoria(mensagem_otimizacao);
         //
         Sleep(500);
@@ -144,6 +143,24 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
         Sleep((rand()%5+1)*1000);
         mensagem_scada_alarmes = gera_mensagem_scada_alarmes(&NSEQ_scada_alarmes);
         envia_memoria(mensagem_scada_alarmes);
+    }
+    return 0;
+} 
+
+unsigned __stdcall retiradaDadosOtimizacao(void *arg){
+    while(1){
+        do{}while(mutex==0);
+        Sleep(1000);
+        int tam = MEMORIA.size();
+        for(int i=0; i<tam; i++){
+            char status = MEMORIA[i][7];
+            if (status=='1'){
+                MEMORIA.erase(MEMORIA.begin()+i);
+                cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
+                break;
+            }
+        mutex++;
+        }
     }
     return 0;
 } 
@@ -165,7 +182,7 @@ int main(){
     //Criaçao de threads
     printf( "Criando threads...\n" );
     hThreads[0] = (HANDLE)_beginthreadex( NULL, 0, &comunicacaoDeDados, NULL, 0, &threadID[0] );
-    hThreads[1] = (HANDLE)_beginthreadex( NULL, 0, &teste, NULL, 0, &threadID[1] );
+    hThreads[1] = (HANDLE)_beginthreadex( NULL, 0, &retiradaDadosOtimizacao, NULL, 0, &threadID[1] );
 
     //Execução das threads
    WaitForMultipleObjects(NTHREADS, hThreads, TRUE, INFINITE);

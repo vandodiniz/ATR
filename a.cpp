@@ -9,10 +9,9 @@
 
 using namespace std;
 
-#define NTHREADS 2
+#define NTHREADS 4
 
 vector<string> MEMORIA;
-//sem_t semaforo_memoria;
 int vagas_memoria = 100;
 int mutex = 1;
 
@@ -116,7 +115,6 @@ string gera_mensagem_scada_alarmes(int* contador){
 }
 
 void envia_memoria(string mensagem){
-    //int status = sem_wait(&semaforo_memoria);
     do{}while(vagas_memoria==0);
     MEMORIA.push_back(mensagem);
     vagas_memoria--;
@@ -132,7 +130,7 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
     string mensagem_scada_alarmes;
     while(1){
         //
-        Sleep((rand()%5+1)*1000);
+        Sleep(1000);
         mensagem_otimizacao = gera_mensagem_otimizacao(&NSEQ_otimizacao);
         envia_memoria(mensagem_otimizacao);
         //
@@ -140,7 +138,7 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
         mensagem_scada_processo = gera_mensagem_scada_processo(&NSEQ_scada_processos);
         envia_memoria(mensagem_scada_processo);
         //
-        Sleep((rand()%5+1)*1000);
+        Sleep(1000);
         mensagem_scada_alarmes = gera_mensagem_scada_alarmes(&NSEQ_scada_alarmes);
         envia_memoria(mensagem_scada_alarmes);
     }
@@ -165,6 +163,42 @@ unsigned __stdcall retiradaDadosOtimizacao(void *arg){
     return 0;
 } 
 
+unsigned __stdcall retiradaDadosProcesso(void *arg){
+    while(1){
+        do{}while(mutex==0);
+        Sleep(1000);
+        int tam = MEMORIA.size();
+        for(int i=0; i<tam; i++){
+            char status = MEMORIA[i][7];
+            if (status=='2'){
+                MEMORIA.erase(MEMORIA.begin()+i);
+                cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
+                break;
+            }
+        mutex++;
+        }
+    }
+    return 0;
+} 
+
+unsigned __stdcall retiradaDadosAlarme(void *arg){
+    while(1){
+        do{}while(mutex==0);
+        Sleep(1000);
+        int tam = MEMORIA.size();
+        for(int i=0; i<tam; i++){
+            char status = MEMORIA[i][7];
+            if (status=='5'){
+                MEMORIA.erase(MEMORIA.begin()+i);
+                cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
+                break;
+            }
+        mutex++;
+        }
+    }
+    return 0;
+} 
+
 unsigned __stdcall teste(void *arg){
     while(1){
         Sleep(3000);
@@ -175,22 +209,22 @@ unsigned __stdcall teste(void *arg){
 
 int main(){
     HANDLE hThreads[NTHREADS];
-    unsigned threadID[2];
-
-    //int status = sem_init(&semaforo_memoria, 0, 100); //sempre retorna 0
+    unsigned threadID[NTHREADS];
 
     //Criaçao de threads
     printf( "Criando threads...\n" );
     hThreads[0] = (HANDLE)_beginthreadex( NULL, 0, &comunicacaoDeDados, NULL, 0, &threadID[0] );
     hThreads[1] = (HANDLE)_beginthreadex( NULL, 0, &retiradaDadosOtimizacao, NULL, 0, &threadID[1] );
+    hThreads[2] = (HANDLE)_beginthreadex( NULL, 0, &retiradaDadosProcesso, NULL, 0, &threadID[2] );
+    hThreads[3] = (HANDLE)_beginthreadex( NULL, 0, &retiradaDadosAlarme, NULL, 0, &threadID[3] );
 
     //Execução das threads
-   WaitForMultipleObjects(NTHREADS, hThreads, TRUE, INFINITE);
+    WaitForMultipleObjects(NTHREADS, hThreads, TRUE, INFINITE);
 
     //Encerramento das threads
-   for(int i = 0; i < NTHREADS; i++)
+    for(int i = 0; i < NTHREADS; i++)
       CloseHandle(hThreads[i]);
 
-   return 0;
+    return 0;
 }
 

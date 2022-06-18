@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
-#include <time.h>
+#include <sysinfoapi.h>
 #include <stdio.h>
 using namespace std;
 
 void incrementa_contador(int* contador) {
     /*
-    Função responsável por incrementar o valor de um determinado contador. O contador é resetado após passar de 999999. 
+    Função responsável por incrementar o valor de um determinado contador. O contador é resetado após passar de 999999.
     Função bastante importante para gerar os NSEQs.
 
     Args:
@@ -21,8 +21,8 @@ void incrementa_contador(int* contador) {
 
 string gera_NSEQ(int contador) {
     /*
-    Função responsável por gerar um NSEQ. Primeiramente, salva-se o valor do contador em uma nova variável do tipo string e 
-    calcula-se o tamanho desta. A partir daí, cria-se em um ‘for loop’ uma nova string auxiliar com a quantidade de zeros 
+    Função responsável por gerar um NSEQ. Primeiramente, salva-se o valor do contador em uma nova variável do tipo string e
+    calcula-se o tamanho desta. A partir daí, cria-se em um ‘for loop’ uma nova string auxiliar com a quantidade de zeros
     necessárias para que o NSEQ tenha seis dígitos. Feito isso, concatenamos essas strings e a retornamos.
 
     Args:
@@ -40,8 +40,8 @@ string gera_NSEQ(int contador) {
 
 string gera_N(int tamanho) {
     /*
-    Função responsável por gerar uma string composta por N dígitos aleatórios. 
-    Com esta função gera-se os valores dos parâmetros VOL, ID e PRIORIDADE. 
+    Função responsável por gerar uma string composta por N dígitos aleatórios.
+    Com esta função gera-se os valores dos parâmetros VOL, ID e PRIORIDADE.
     Nela cada dígito é sorteado e armazenado em strings. O número final é a concatenação dessas strings.
 
     Args:
@@ -70,8 +70,8 @@ string gera_N(int tamanho) {
 
 string gera_NNNNpN() {
     /*
-    Função responsável por gerar uma string composta por 5 dígitos aleatórios e um ponto na quinta posição. 
-    Com esta função gera-se os valores dos parâmetros SP_PRESS, SP_TEMP, PRESSAO_T, TEMP, PRESSAO_G e  NÍVEL. 
+    Função responsável por gerar uma string composta por 5 dígitos aleatórios e um ponto na quinta posição.
+    Com esta função gera-se os valores dos parâmetros SP_PRESS, SP_TEMP, PRESSAO_T, TEMP, PRESSAO_G e  NÍVEL.
     Funcionamento similar a função anterior.
 
     Args: -
@@ -93,7 +93,7 @@ string gera_NNNNpN() {
 
 string gera_tempo() {
     /*
-    Função responsável por capturar o horário do sistema e transformá-lo em uma string. Necessária para a criação do 
+    Função responsável por capturar o horário do sistema e transformá-lo em uma string. Necessária para a criação do
     parâmetro TIMESTAMP.
     Args: None.
     Returns: string de 8 elementos.
@@ -114,8 +114,8 @@ string gera_tempo() {
 
 string gera_mensagem_otimizacao(int* contador) {
     /*
-    Função responsável por gerar uma mensagem de otimização. Primeiramente, incrementamos o contador e a partir daí geramos 
-    os valores de cada parâmetro individualmente com ajuda das funções anteriores. Feito isso, concatenamos todas essas strings 
+    Função responsável por gerar uma mensagem de otimização. Primeiramente, incrementamos o contador e a partir daí geramos
+    os valores de cada parâmetro individualmente com ajuda das funções anteriores. Feito isso, concatenamos todas essas strings
     junto com o caractere "|" para representar a mensagem final.
 
     Args:
@@ -137,8 +137,8 @@ string gera_mensagem_otimizacao(int* contador) {
 
 string gera_mensagem_scada_processo(int* contador) {
     /*
-    Função responsável por gerar uma mensagem do SCADA referentes aos dados do processo. Primeiramente, incrementamos 
-    o contador e a partir daí geramos os valores de cada parâmetro individualmente com ajuda das funções anteriores. 
+    Função responsável por gerar uma mensagem do SCADA referentes aos dados do processo. Primeiramente, incrementamos
+    o contador e a partir daí geramos os valores de cada parâmetro individualmente com ajuda das funções anteriores.
     Feito isso, concatenamos todas essas strings junto com o caractere "|" para representar a mensagem final.
 
     Args:
@@ -161,8 +161,8 @@ string gera_mensagem_scada_processo(int* contador) {
 
 string gera_mensagem_scada_alarmes(int* contador) {
     /*
-    Função responsável por gerar uma mensagem do SCADA referentes aos alarmes. Primeiramente, incrementamos o 
-    contador e a partir daí geramos os valores de cada parâmetro individualmente com ajuda das funções anteriores. 
+    Função responsável por gerar uma mensagem do SCADA referentes aos alarmes. Primeiramente, incrementamos o
+    contador e a partir daí geramos os valores de cada parâmetro individualmente com ajuda das funções anteriores.
     Feito isso, concatenamos todas essas strings junto com o caractere "|" para representar a mensagem final.
 
     Args:

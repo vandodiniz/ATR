@@ -2,6 +2,7 @@
 #include <string>
 #include <time.h>
 #include <stdio.h>
+#include <sysinfoapi.h>
 using namespace std;
 
 void incrementa_contador(int *contador){
@@ -52,12 +53,17 @@ string gera_NNNNpN(){
     return NNNNpN;
 }
 
-string gera_tempo(){
+string gera_tempo() {
+    SYSTEMTIME st = {0};
+
+    GetLocalTime(&st);
+
     string TIMESTAMP;
-    time_t result = time(nullptr);
-    string tempo = asctime(localtime(&result));
-    for (int i = 11; i<19; i++)
-        TIMESTAMP += tempo[i];
+    TIMESTAMP += to_string(st.wHour);
+    TIMESTAMP += ":";
+    TIMESTAMP += to_string(st.wMinute);
+    TIMESTAMP += ":";
+    TIMESTAMP += to_string(st.wSecond%02);
     return TIMESTAMP;
 }
 

@@ -1,11 +1,7 @@
 #include <iostream>
 #include <string>
 #include <time.h>
-#include <windows.h>
 #include <stdio.h>
-#include <process.h>
-#include <vector>
-#include <semaphore.h>
 using namespace std;
 
 void incrementa_contador(int *contador){

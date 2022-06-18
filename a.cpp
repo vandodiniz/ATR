@@ -11,9 +11,9 @@ using namespace std;
 
 #define NTHREADS 4
 
+HANDLE semaforo_memoria;
+HANDLE mutex;
 vector<string> MEMORIA;
-int vagas_memoria = 100;
-int mutex = 1;
 
 void incrementa_contador(int *contador){
     *contador+=1;
@@ -115,9 +115,8 @@ string gera_mensagem_scada_alarmes(int* contador){
 }
 
 void envia_memoria(string mensagem){
-    do{}while(vagas_memoria==0);
+    WaitForSingleObject( semaforo_memoria, INFINITE);
     MEMORIA.push_back(mensagem);
-    vagas_memoria--;
     cout << "Enviando mensagem do tipo "<< mensagem[7] << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
 } 
 
@@ -147,7 +146,7 @@ unsigned __stdcall comunicacaoDeDados(void *arg){
 
 unsigned __stdcall retiradaDadosOtimizacao(void *arg){
     while(1){
-        do{}while(mutex==0);
+        WaitForSingleObject(mutex, INFINITE);
         Sleep(1000);
         int tam = MEMORIA.size();
         for(int i=0; i<tam; i++){
@@ -157,15 +156,15 @@ unsigned __stdcall retiradaDadosOtimizacao(void *arg){
                 cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
                 break;
             }
-        mutex++;
         }
+        ReleaseSemaphore(mutex, 1, NULL);
     }
     return 0;
 } 
 
 unsigned __stdcall retiradaDadosProcesso(void *arg){
     while(1){
-        do{}while(mutex==0);
+        WaitForSingleObject(mutex, INFINITE);
         Sleep(1000);
         int tam = MEMORIA.size();
         for(int i=0; i<tam; i++){
@@ -175,15 +174,15 @@ unsigned __stdcall retiradaDadosProcesso(void *arg){
                 cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
                 break;
             }
-        mutex++;
         }
+        ReleaseSemaphore(mutex, 1, NULL);
     }
     return 0;
-} 
+}
 
 unsigned __stdcall retiradaDadosAlarme(void *arg){
     while(1){
-        do{}while(mutex==0);
+        WaitForSingleObject(mutex, INFINITE);
         Sleep(1000);
         int tam = MEMORIA.size();
         for(int i=0; i<tam; i++){
@@ -193,23 +192,19 @@ unsigned __stdcall retiradaDadosAlarme(void *arg){
                 cout << "Retirando mensagem do tipo "<< status << " Tamanho atual da memoria: "<< MEMORIA.size() << endl;
                 break;
             }
-        mutex++;
         }
+        ReleaseSemaphore(mutex, 1, NULL);
     }
     return 0;
 } 
 
-unsigned __stdcall teste(void *arg){
-    while(1){
-        Sleep(3000);
-        cout << "oi" << endl;
-    }
-    return 0;
-}
-
 int main(){
     HANDLE hThreads[NTHREADS];
     unsigned threadID[NTHREADS];
+
+    semaforo_memoria = CreateSemaphore( NULL, 100, 100, NULL); 
+        
+    mutex = CreateSemaphore(NULL, 1, 1, NULL);          
 
     //Criaçao de threads
     printf( "Criando threads...\n" );
